@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.models.analysis import AnalyzeRequest, AnalyzeResponse
+from app.services.gemini_service import generate_analysis
 
 app = FastAPI()
 app.add_middleware(
@@ -17,9 +18,4 @@ def health():
 
 @app.post("/analyze", response_model= AnalyzeResponse)
 def analyze(request: AnalyzeRequest):
-    return {"analyses" : [{
-        "sentence": request.text,
-        "pattern": "pattern works",
-        "hsk_level": 3,
-        "explanation": "explanation works"
-    }]}
+    return generate_analysis(request.text)
