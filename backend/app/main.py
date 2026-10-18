@@ -1,7 +1,6 @@
 from fastapi import FastAPI
-from pydantic import BaseModel, Field, StringConstraints
-from typing import Annotated
 from fastapi.middleware.cors import CORSMiddleware
+from app.models.analysis import AnalyzeRequest, AnalyzeResponse
 
 app = FastAPI()
 app.add_middleware(
@@ -15,18 +14,6 @@ app.add_middleware(
 @app.get('/health')
 def health():
     return {'status':'OK'}
-
-class AnalyzeRequest(BaseModel):
-    text: Annotated[str, StringConstraints(pattern=r".*\S.*")]
-
-class SentenceAnalysis(BaseModel):
-    sentence: str
-    pattern: str
-    hsk_level: int = Field(ge=1, le=6)
-    explanation: str
-
-class AnalyzeResponse(BaseModel):
-    analyses: list[SentenceAnalysis]
 
 @app.post("/analyze", response_model= AnalyzeResponse)
 def analyze(request: AnalyzeRequest):
