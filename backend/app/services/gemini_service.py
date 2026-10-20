@@ -1,9 +1,14 @@
 import os
 from google import genai
 from google.genai import types
+from google.genai import errors
 from ..models.analysis import AnalyzeResponse
 from dotenv import load_dotenv
 from pathlib import Path
+
+class AnalysisUnavailableError(Exception):
+    """Raised when the analysis service is temporarily unavailable."""
+    pass
 
 load_dotenv(Path(__file__).resolve().parents[2]/".env")
 
@@ -29,17 +34,21 @@ Follow these instructions:
 Chinese passage:
 {text}
 """
+    try:
+        response = client.models.generate_content(
+            model="gemini-3.7-flash",
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                response_mime_type="application/json",
+                response_schema=AnalyzeResponse,
+            ),
+        )
 
-    response = client.models.generate_content(
-        model="gemini-3.6-flash",
-        contents=prompt,
-        config=types.GenerateContentConfig(
-            response_mime_type="application/json",
-            response_schema=AnalyzeResponse,
-        ),
-    )
+        if not response.text:
+            raise RuntimeError("Gemini returned an empty response.")
 
-    if not response.text:
-        raise RuntimeError("Gemini returned an empty response.")
-
-    return AnalyzeResponse.model_validate_json(response.text)
+        return AnalyzeResponse.model_validate_json(response.text)
+    except errors.ServerError as e:
+        if e.code == 503:
+            raise AnalysisUnavailableError() from e
+        raise

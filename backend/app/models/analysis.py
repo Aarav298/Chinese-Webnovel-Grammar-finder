@@ -1,8 +1,11 @@
-from pydantic import BaseModel, Field, StringConstraints
+from pydantic import BaseModel, Field, StringConstraints, AnyHttpUrl
 from typing import Annotated
 
 class AnalyzeRequest(BaseModel):
     text: Annotated[str, StringConstraints(pattern=r".*\S.*")]
+
+class AnalyzeUrlRequest(BaseModel):
+    url: AnyHttpUrl
 
 class SentenceAnalysis(BaseModel):
     sentence: str = Field(description="The original sentence")
