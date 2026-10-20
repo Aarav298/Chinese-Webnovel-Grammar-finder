@@ -32,7 +32,7 @@ def analyze(request: AnalyzeRequest):
 async def analyze_url(request: AnalyzeUrlRequest):
     try:
         text = await extract_chapter_text(str(request.url))
-        return await run_in_threadpool(generate_analysis, text)
+        return await run_in_threadpool(generate_analysis, text[:200])
     
     except UnsupportedChapterUrlError as exc:
         raise HTTPException(
